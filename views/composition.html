@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processamento de Imagem</title>
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <script src="../js/lib/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container"><a class="navbar-brand" href="../index.html">Projeto CG</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span
+                class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item"><a class="nav-link" href="filters.html">Filtros</a></li>
+                <li class="nav-item"><a class="nav-link active" href="composition.html">Composição</a></li>
+                <li class="nav-item"><a class="nav-link" href="transformations.html">Transformações</a></li>
+                <li class="nav-item"><a class="nav-link" href="sobre-o-projeto.html">Sobre o projeto</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<br>
+<main>
+    <div class="container-fluid p-0 m-0 justify-content-center d-grid" style="min-height: 400px;">
+        <div class="row w-100 p-0 w-0">
+            <div class="col-lg-4 mb-2 align-items-center">
+                <div class="card  mx-auto" style="width:300px; height: 400px;">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Imagem A</h5>
+                        <div class="card-img-top" id="img-1"></div>
+                        <br>
+                        <div style="width: 256px; height: 50px;" class="text-center">
+                            <select class="form-select" aria-label="Selecionar filtro" id="img-1-selector">
+                                <option selected value="0">Lena</option>
+                                <option value="1">Airplane</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-2 align-items-center">
+                <div class="card  mx-auto" style="width:300px; height: 400px;">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Imagem B</h5>
+                        <div class="card-img-top" id="img-2"></div>
+                        <br>
+                        <div style="width: 256px; height: 50px;" class="text-center">
+                            <select class="form-select" aria-label="Selecionar filtro" id="img-2-selector">
+                                <option value="0">Lena</option>
+                                <option selected value="1">Airplane</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-2 align-items-center">
+                <div class="card  mx-auto" style="width:300px; height: 400px;">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Imagem Processada</h5>
+                        <div class="card-img-top" id="processed-img"></div>
+                        <br>
+                        <div style="width: 256px; height: 50px;" class="text-center">
+                            <select class="form-select" aria-label="Selecionar filtro" id="input-filter">
+                                <option selected value="-1">Escolher</option>
+                                <option value="0">+</option>
+                                <option value="1">-</option>
+                                <option value="2">*</option>
+                                <option value="3">/</option>
+                                <option value="4">OR</option>
+                                <option value="5">AND</option>
+                                <option value="6">XOR</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<script src="../js/lib/p5.min.js"></script>
+<script src="../js/src/composition.js"></script>
+</body>
+</html>
