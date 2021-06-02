@@ -78,6 +78,8 @@ const imagesPath = {
 let kernelList = [];
 
 const applyFilterBtn = document.getElementById('apply-filter-btn');
+const applyAgainBtn = document.getElementById('apply-again-btn');
+
 const filterSelector = document.getElementById('input-filter');
 const inputMatrix = document.getElementById('input-matrix');
 const inputMatrixValues = document.getElementsByName('array[]');
@@ -120,6 +122,11 @@ const mainCanvas = function (sketch) {
     applyFilterBtn.onclick = function () {
         processedImg = convolution(img, activeFilter);
         screen2.setup();
+    }
+
+    applyAgainBtn.onclick = function () {
+        img = processedImg;
+        paintImage(sketch, img, w, h);
     }
 
     inputMatrix.onchange = function () {
@@ -280,4 +287,34 @@ function insertionSort(arr, n) {
         }
         arr[j + 1] = key;
     }
+}
+
+function download(filename, data) {
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + imgToText(data));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+}
+
+document.getElementById("download-btn").onclick = function () {
+    const filename = "image.pgm";
+    download(filename, processedImg);
+}
+
+function imgToText(img) {
+    let str = `P2\n${w} ${h}\n255\n`;
+    for (let i = 0; i < h; i++) {
+        for (let j = 0; j < w; j++) {
+            str += `${img[i][j]} `;
+        }
+        str += '\n';
+    }
+
+    return str;
 }

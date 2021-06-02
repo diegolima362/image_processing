@@ -157,9 +157,39 @@ function composition(a, b) {
 
     for (let i = 0; i < h; ++i) {
         for (let j = 0; j < w; ++j) {
-            res[i][j] = (res[i][j] - min) / (max - min) * 255.0;
+            res[i][j] = Math.round((res[i][j] - min) / (max - min) * 255.0);
         }
     }
 
     return res;
+}
+
+function download(filename, data) {
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + imgToText(data));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+}
+
+document.getElementById("download-btn").onclick = function () {
+    const filename = "image.pgm";
+    download(filename, processedImg);
+}
+
+function imgToText(img) {
+    let str = `P2\n${w} ${h}\n255\n`;
+    for (let i = 0; i < h; i++) {
+        for (let j = 0; j < w; j++) {
+            str += `${img[i][j]} `;
+        }
+        str += '\n';
+    }
+
+    return str;
 }

@@ -4,9 +4,6 @@ let processedImg = [];
 let w = 256;
 let h = 256;
 
-let pw = 256;
-let ph = 256;
-
 let maxValue = 255;
 let minValue = 0;
 
@@ -19,11 +16,11 @@ let greyCenterValue = 127;
 let sigmaValue = 25;
 
 const negative = (r) => 255 - r;
-const gamma = (r) => (((1 + r) / 255) ** gammaValue) * 255;
-const logarithmic = (r) => (logScalarValue * Math.log(1 + (r / 255))) * 255;
-const linear = (r) => aValue * r + bValue;
-const dynamicRange = (r) => ((r - minValue) / (255 - minValue)) * targetValue;
-const sigmoide = (r) => 255 * (1 / (1 + Math.exp(-(r - greyCenterValue) / sigmaValue)));
+const gamma = (r) => Math.round((((1 + r) / 255) ** gammaValue) * 255);
+const logarithmic = (r) => Math.round((logScalarValue * Math.log(1 + (r / 255))) * 255);
+const linear = (r) => Math.round(aValue * r + bValue);
+const dynamicRange = (r) => Math.round(((r - minValue) / (255 - minValue)) * targetValue);
+const sigmoide = (r) => Math.round(255 * (1 / (1 + Math.exp(-(r - greyCenterValue) / sigmaValue))));
 
 let currentOperator = null;
 
@@ -50,6 +47,9 @@ const imagesPath = {
 
 let kernelList = [];
 
+const applyAgainBtn = document.getElementById('apply-again-btn');
+
+
 const filterSelector = document.getElementById('input-filter');
 const inputMatrix = document.getElementById('input-matrix');
 const inputMatrixValues = document.getElementsByName('array[]');
@@ -65,6 +65,11 @@ const mainCanvas = function (sketch) {
     imgSelector.onchange = function () {
         let path = imagesPath[imgSelector.value];
         fetch(path).then(data => data.blob().then(readImage));
+    }
+
+    applyAgainBtn.onclick = function () {
+        img = processedImg;
+        paintImage(sketch, img, w, h);
     }
 
     filterSelector.onchange = function () {
@@ -112,8 +117,6 @@ const mainCanvas = function (sketch) {
                 w = parseInt(resolution[0]);
                 h = parseInt(resolution[1]);
 
-                pw = w;
-                ph = h;
 
                 sketch.resizeCanvas(w, h);
 
@@ -149,7 +152,7 @@ const mainCanvas = function (sketch) {
 let processedCanvas = function (sketch) {
     sketch.setup = function () {
         sketch.createCanvas(w, h).parent("processed-img");
-        if (processedImg.length !== 0) paintImage(sketch, processedImg, pw, ph);
+        if (processedImg.length !== 0) paintImage(sketch, processedImg, w, h);
         else if (img.length !== 0) paintImage(sketch, img, w, h);
     };
 };
@@ -199,17 +202,17 @@ function normalize(img, w, h) {
     let min = img[0][0];
     let max = img[0][0];
 
-    for (let i = 0; i < w; ++i) {
-        for (let j = 0; j < h; ++j) {
+    for (let i = 0; i < h; ++i) {
+        for (let j = 0; j < w; ++j) {
             let v = img[i][j];
             if (v < min) min = v;
             if (v > max) max = v;
         }
     }
 
-    for (let i = 0; i < w; ++i) {
+    for (let i = 0; i < h; ++i) {
         res[i] = [];
-        for (let j = 0; j < h; ++j) {
+        for (let j = 0; j < w; ++j) {
             res[i][j] = (255 - max) * (img[i][j] - min) / (max - min);
         }
     }
@@ -217,3 +220,32 @@ function normalize(img, w, h) {
     return res;
 }
 
+function download(filename, data) {
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + imgToText(data));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+}
+
+document.getElementById("download-btn").onclick = function () {
+    const filename = "image.pgm";
+    download(filename, processedImg);
+}
+
+function imgToText(img) {
+    let str = `P2\n${w} ${h}\n255\n`;
+    for (let i = 0; i < h; i++) {
+        for (let j = 0; j < w; j++) {
+            str += `${img[i][j]} `;
+        }
+        str += '\n';
+    }
+
+    return str;
+}
