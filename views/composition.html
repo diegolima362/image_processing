@@ -5,6 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Processamento de Imagem</title>
+
+    <link rel="shortcut icon" href="../assets/favicon.png"/>
+
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <script src="../js/lib/bootstrap.bundle.min.js"></script>
 </head>
@@ -64,20 +67,25 @@
                     <div class="card-body">
                         <h5 class="card-title text-center">Imagem Processada</h5>
                         <div class="card-img-top" id="processed-img"></div>
-                        <br>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="normalizeSwitch">
+                            <label class="form-check-label" for="normalizeSwitch">Normalizar [0-255]</label>
+                        </div>
                         <div style="width: 256px; height: 50px;" class="text-center">
                             <select class="form-select" aria-label="Selecionar filtro" id="input-filter">
-                                <option selected value="-1">Escolher</option>
-                                <option value="0">+</option>
-                                <option value="1">-</option>
-                                <option value="2">*</option>
-                                <option value="3">/</option>
-                                <option value="4">OR</option>
-                                <option value="5">AND</option>
-                                <option value="6">XOR</option>
+                                <option selected value="0">Escolher</option>
+                                <option value="1">+</option>
+                                <option value="2">-</option>
+                                <option value="3">*</option>
+                                <option value="4">/</option>
+                                <option value="5">OR</option>
+                                <option value="6">AND</option>
+                                <option value="7">XOR</option>
                             </select>
                         </div>
-                        <button type="button" class="btn btn-dark" id="download-btn" style="width: 256px; margin-top: 5px">
+
+                        <button type="button" class="btn btn-dark" id="download-btn"
+                                style="width: 256px; margin-top: 5px">
                             Salvar Imagem
                         </button>
                     </div>
@@ -87,6 +95,7 @@
     </div>
 </main>
 <script src="../js/lib/p5.min.js"></script>
+<script src="../js/src/utils.js"></script>
 <script src="../js/src/composition.js"></script>
 </body>
 </html>

@@ -5,6 +5,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Processamento de Imagem</title>
+
+    <link rel="shortcut icon" href="../assets/favicon.png"/>
+
+
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <script src="../js/lib/bootstrap.bundle.min.js"></script>
 </head>
@@ -82,8 +86,6 @@
                                            style="width: 50px; text-align:center">
                                 </label>
                                 <label style="padding-bottom: 10px">Faixa:
-                                    <input type="number" name="array[]" value="0" step="1"
-                                           style="width: 50px; text-align:center">
                                     <input type="number" name="array[]" value="255" step="1"
                                            style="width: 50px; text-align:center">
                                 </label>
@@ -103,10 +105,15 @@
                     <div class="card-body">
                         <h5 class="card-title text-center">Imagem Processada</h5>
                         <div class="card-img-top" id="processed-img"></div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="normalizeSwitch">
+                            <label class="form-check-label" for="normalizeSwitch">Normalizar [0-255]</label>
+                        </div>
                         <button type="button" class="btn btn-dark" id="apply-again-btn" style="width: 256px;">
                             Usar como original
                         </button>
-                        <button type="button" class="btn btn-outline-dark" id="download-btn" style="width: 256px; margin-top: 5px">
+                        <button type="button" class="btn btn-outline-dark" id="download-btn"
+                                style="width: 256px; margin-top: 5px">
                             Salvar Imagem
                         </button>
                     </div>
@@ -116,6 +123,7 @@
     </div>
 </main>
 <script src="../js/lib/p5.min.js"></script>
+<script src="../js/src/utils.js"></script>
 <script src="../js/src/transformations.js"></script>
 </body>
 </html>

@@ -1,195 +1,88 @@
-let img1 = [];
-let img2 = [];
+let imgA = [];
+let imgB = [];
 let processedImg = [];
 
-let w = 256;
-let h = 256;
+let selectedOperator = null;
 
-let pw = 256;
-let ph = 256;
+const add = (a, b) => a + b;
+const sub = (a, b) => a - b;
+const mul = (a, b) => a * b;
+const divide = (a, b) => b === 0 ? 0 : a / b;
+
+const or = (a, b) => a | b;
+const and = (a, b) => a & b;
+const xor = (a, b) => a ^ b;
+
+const operators = {
+    1: add,
+    2: sub,
+    3: mul,
+    4: divide,
+    5: or,
+    6: and,
+    7: xor,
+};
+
+const imagesPath = {
+    0: '../assets/lena.pgm',
+    1: '../assets/airplane.pgm',
+};
 
 const filterSelector = document.getElementById('input-filter');
-
 const img1Selector = document.getElementById('img-1-selector');
 const img2Selector = document.getElementById('img-2-selector');
 
-let selectedOperator = 0;
+const normalizeSwitch = document.getElementById('normalizeSwitch');
+const downloadBtn = document.getElementById('download-btn');
+
+let doNormalize = false;
+
 
 const mainCanvas = function (sketch) {
     sketch.setup = function () {
         sketch.createCanvas(w, h).parent("img-1");
-        fetch('../assets/lena.pgm').then(data => data.blob().then(file => readImage(file, img1, sketch)));
+        readImage('../assets/lena.pgm', sketch, imgA);
     }
 
-    img1Selector.onchange = function () {
-        let value = img1Selector.value;
-
-        if (value === '0') {
-            fetch('../assets/lena.pgm').then(data => data.blob().then(file => readImage(file, img1, sketch)));
-        } else if (value === '1') {
-            fetch('../assets/airplane.pgm').then(data => data.blob().then(file => readImage(file, img1, sketch)));
-        }
-    }
-
+    img1Selector.onchange = _ => readImage(imagesPath[img1Selector.value], sketch, imgA);
 }
+
 
 const secondaryCanvas = function (sketch) {
     sketch.setup = function () {
         sketch.createCanvas(w, h).parent("img-2");
-        fetch('../assets/airplane.pgm').then(data => data.blob().then(file => readImage(file, img2, sketch)));
+        readImage('../assets/airplane.pgm', sketch, imgB, w, h);
     }
 
-    img2Selector.onchange = function () {
-        let value = img2Selector.value;
-
-        if (value === '0') {
-            fetch('../assets/lena.pgm').then(data => data.blob().then(file => readImage(file, img2, sketch)));
-        } else if (value === '1') {
-            fetch('../assets/airplane.pgm').then(data => data.blob().then(file => readImage(file, img2, sketch)));
-        }
-    }
+    img2Selector.onchange = _ => readImage(imagesPath[img2Selector.value], sketch, imgB);
 }
 
 
-let processedCanvas = function (sketch) {
+const processedCanvas = function (sketch) {
     sketch.setup = function () {
         sketch.createCanvas(w, h).parent("processed-img");
-
-        filterSelector.onchange = function () {
-            selectedOperator = filterSelector.value;
-            processedImg = composition(img1, img2);
-            paintImage(sketch, processedImg, pw, ph);
-        }
     };
+
+    filterSelector.onchange = function () {
+        let val = filterSelector.value;
+
+        if (val !== '0') {
+            processedImg = composition(imgA, imgB, operators[val], doNormalize);
+            paintImage(sketch, processedImg);
+        }
+    }
+
+    normalizeSwitch.onchange = function () {
+        doNormalize = !doNormalize;
+    }
+
+    downloadBtn.onclick = function () {
+        let filename = "image.pgm";
+        download(filename, processedImg);
+    }
 };
 
-let screen1 = new p5(mainCanvas, 'p5sketch');
-let screen2 = new p5(secondaryCanvas, 'p5sketch');
-let screen3 = new p5(processedCanvas, 'p5sketch');
 
-
-function readImage(file, img, sketch) {
-    if (file != null) {
-        let reader = new FileReader();
-
-        reader.readAsText(file);
-
-        reader.onload = function (_) {
-            let lines = this.result.trim().split('\n');
-
-            let resolution = lines[1].split(' ');
-            w = parseInt(resolution[0]);
-            h = parseInt(resolution[1]);
-
-            sketch.resizeCanvas(w, h);
-
-            maxValue = parseInt(resolution[2]);
-
-            for (let i = 3; i < lines.length; i++) {
-                let line = lines[i].split(' ');
-                img[i - 3] = [];
-                for (let j = 0; j < line.length; j++) {
-                    img[i - 3][j] = parseInt(line[j]);
-                }
-            }
-
-            paintImage(sketch, img, w, h);
-        }
-    }
-}
-
-function paintImage(sketch, img, w, h) {
-    sketch.background(220);
-    sketch.loadPixels();
-
-    for (let i = 0; i < h; ++i) {
-        for (let j = 0; j < w; ++j) {
-            if (img[i][j] < 0) {
-                console.log('<0')
-                img[i][j] = 0;
-            }
-            if (img[i][j] > 255) {
-                console.log('>255')
-                img[i][j] = 255;
-            }
-
-            sketch.set(j, i, img[i][j]);
-        }
-    }
-
-    sketch.updatePixels();
-
-}
-
-
-function composition(a, b) {
-    let res = [];
-    for (let i = 0; i < ph; i++) {
-        res[i] = [];
-        for (let j = 0; j < pw; j++) {
-            if (selectedOperator === '0')
-                res[i][j] = (a[i][j] + b[i][j]);
-            else if (selectedOperator === '1')
-                res[i][j] = (a[i][j] - b[i][j]);
-            else if (selectedOperator === '2')
-                res[i][j] = (a[i][j] * b[i][j]);
-            else if (selectedOperator === '3')
-                res[i][j] = b[i][j] === 0 ? 0 : (a[i][j] / b[i][j]);
-            else if (selectedOperator === '4')
-                res[i][j] = (a[i][j] | b[i][j]);
-            else if (selectedOperator === '5')
-                res[i][j] = (a[i][j] & b[i][j]);
-            else if (selectedOperator === '6')
-                res[i][j] = (a[i][j] ^ b[i][j]);
-        }
-    }
-
-    let min = 0
-    let max = 0;
-
-    for (let i = 0; i < h; ++i) {
-        for (let j = 0; j < w; ++j) {
-            let v = res[i][j];
-            if (v < min) min = v;
-            if (v > max) max = v;
-        }
-    }
-
-    for (let i = 0; i < h; ++i) {
-        for (let j = 0; j < w; ++j) {
-            res[i][j] = Math.round((res[i][j] - min) / (max - min) * 255.0);
-        }
-    }
-
-    return res;
-}
-
-function download(filename, data) {
-    const element = document.createElement('a');
-    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + imgToText(data));
-    element.setAttribute('download', filename);
-
-    element.style.display = 'none';
-    document.body.appendChild(element);
-
-    element.click();
-
-    document.body.removeChild(element);
-}
-
-document.getElementById("download-btn").onclick = function () {
-    const filename = "image.pgm";
-    download(filename, processedImg);
-}
-
-function imgToText(img) {
-    let str = `P2\n${w} ${h}\n255\n`;
-    for (let i = 0; i < h; i++) {
-        for (let j = 0; j < w; j++) {
-            str += `${img[i][j]} `;
-        }
-        str += '\n';
-    }
-
-    return str;
-}
+new p5(mainCanvas, 'p5sketch');
+new p5(secondaryCanvas, 'p5sketch');
+new p5(processedCanvas, 'p5sketch');

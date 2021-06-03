@@ -4,14 +4,6 @@ const EIGHTH = 1.0 / 8.0;
 const NINTH = 1.0 / 9.0;
 const SIXTEENTH = 1.0 / 16.0;
 
-let img = [];
-let processedImg = [];
-
-let w = 256;
-let h = 256;
-
-let maxValue = 255;
-
 const edgeDetection = [[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]];
 const edgeDetection2 = [[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]];
 const sharpen = [[0, -1, 0], [-1, 5, -1], [0, -1, 0]];
@@ -24,7 +16,6 @@ const prewittY = [[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]];
 const prewittXY = [[-2, -1, 0], [-1, 0, 1], [0, 1, 2]];
 
 const average = [[NINTH, NINTH, NINTH], [NINTH, NINTH, NINTH], [NINTH, NINTH, NINTH]];
-
 
 const gaussianBlur = [
     [SIXTEENTH, EIGHTH, SIXTEENTH],
@@ -75,10 +66,13 @@ const imagesPath = {
     8: '../assets/sea.pgm',
 };
 
-let kernelList = [];
+let img = [];
+let processedImg = [];
+
 
 const applyFilterBtn = document.getElementById('apply-filter-btn');
 const applyAgainBtn = document.getElementById('apply-again-btn');
+const downloadBtn = document.getElementById('download-btn');
 
 const filterSelector = document.getElementById('input-filter');
 const inputMatrix = document.getElementById('input-matrix');
@@ -86,47 +80,22 @@ const inputMatrixValues = document.getElementsByName('array[]');
 const imgSelector = document.getElementById('img-selector');
 const scalar = document.getElementById('scalar');
 
+const normalizeSwitch = document.getElementById('normalizeSwitch');
+
+let doNormalize = false;
+
 
 const mainCanvas = function (sketch) {
     sketch.setup = function () {
         sketch.createCanvas(w, h).parent("original-img");
-        fetch('../assets/lena.pgm').then(data => data.blob().then(readImage));
+        readImage('../assets/lena.pgm', sketch, img);
     }
 
-    imgSelector.onchange = function () {
-        let path = imagesPath[imgSelector.value];
-        fetch(path).then(data => data.blob().then(readImage));
-    }
-
-    filterSelector.onchange = function () {
-        let value = filterSelector.value;
-
-        if (value === '15') {
-            processedImg = medianFilter();
-        } else {
-            activeFilter = filters[value];
-
-            let k = 0;
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    inputMatrixValues[k++].value = `${activeFilter[i][j]}`;
-                }
-            }
-
-            processedImg = convolution(img, activeFilter);
-        }
-
-        screen2.setup();
-    }
-
-    applyFilterBtn.onclick = function () {
-        processedImg = convolution(img, activeFilter);
-        screen2.setup();
-    }
+    imgSelector.onchange = _ => readImage(imagesPath[imgSelector.value], sketch, img);
 
     applyAgainBtn.onclick = function () {
         img = processedImg;
-        paintImage(sketch, img, w, h);
+        paintImage(sketch, img);
     }
 
     inputMatrix.onchange = function () {
@@ -138,117 +107,54 @@ const mainCanvas = function (sketch) {
                 custom[i][j] = parseFloat(scalar.value) * parseFloat(inputMatrixValues[k++].value);
             }
         }
-
         activeFilter = custom;
     }
-
-    function readImage(file) {
-        if (file != null) {
-            let reader = new FileReader();
-
-            reader.readAsText(file);
-
-            reader.onload = function (_) {
-                img = [];
-                let lines = this.result.trim().split('\n');
-
-                let resolution = lines[1].split(' ');
-                w = parseInt(resolution[0]);
-                h = parseInt(resolution[1]);
-
-
-                sketch.resizeCanvas(w, h);
-
-                maxValue = parseInt(resolution[2]);
-
-                let flat = [];
-
-                let k = 0;
-                for (let i = 3; i < lines.length; i++) {
-                    let line = lines[i].trim().split(' ');
-                    for (let j = 0; j < line.length; j++) {
-                        flat[k++] = parseInt(line[j]);
-                    }
-                }
-
-                k = 0;
-                for (let i = 0; i < h; i++) {
-                    img[i] = [];
-                    for (let j = 0; j < w; j++) {
-                        img[i][j] = flat[k++];
-                    }
-                }
-
-                paintImage(sketch, img, w, h);
-                processedImg = img;
-                screen2.setup();
-            }
-        }
-    }
 }
 
 
-let processedCanvas = function (sketch) {
+const processedCanvas = function (sketch) {
     sketch.setup = function () {
         sketch.createCanvas(w, h).parent("processed-img");
-        if (processedImg.length !== 0) paintImage(sketch, processedImg, w, h);
-        else if (img.length !== 0) paintImage(sketch, img, w, h);
     };
+
+    filterSelector.onchange = function () {
+        let value = filterSelector.value;
+
+        if (value === '15') {
+            processedImg = medianFilter(img);
+        } else {
+            activeFilter = filters[value];
+
+            let k = 0;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    inputMatrixValues[k++].value = `${activeFilter[i][j]}`;
+                }
+            }
+
+            processedImg = convolution(img, activeFilter, doNormalize);
+        }
+
+        paintImage(sketch, processedImg);
+    }
+
+    normalizeSwitch.onchange = function () {
+        doNormalize = !doNormalize;
+    }
+
+    applyFilterBtn.onclick = function () {
+        processedImg = convolution(img, activeFilter, doNormalize);
+        paintImage(sketch, processedImg);
+    }
+
+    downloadBtn.onclick = function () {
+        let filename = "image.pgm";
+        download(filename, processedImg);
+    }
 };
 
-let screen1 = new p5(mainCanvas, 'p5sketch');
-let screen2 = new p5(processedCanvas, 'p5sketch');
 
-
-function paintImage(sketch, img, w, h) {
-    sketch.background(220);
-    sketch.loadPixels();
-
-    for (let i = 0; i < h; ++i) {
-        for (let j = 0; j < w; ++j) {
-            if (img[i][j] < 0) {
-                img[i][j] = 0;
-            }
-            if (img[i][j] > 255) {
-                img[i][j] = 255;
-            }
-
-            sketch.set(j, i, img[i][j]);
-        }
-    }
-
-    sketch.updatePixels();
-
-}
-
-function convolution(img, k) {
-    let res = []
-
-    for (let i = 0; i < h; i++) {
-        res [i] = []
-        for (let j = 0; j < w; j++) {
-            let acc = 0
-
-            acc += k[2][2] * (i === 0 || j === 0 ? 0 : img[i - 1][j - 1]);
-            acc += k[2][1] * (i === 0 ? 0 : img[i - 1][j]);
-            acc += k[2][0] * (i === 0 || j === w - 1 ? 0 : img[i - 1][j + 1]);
-
-            acc += k[1][2] * (j === 0 ? 0 : img[i][j - 1]);
-            acc += k[1][1] * img[i][j];
-            acc += k[1][0] * (j === w - 1 ? 0 : img[i][j + 1]);
-
-            acc += k[0][2] * (i === h - 1 || j === 0 ? 0 : img[i + 1][j - 1]);
-            acc += k[0][1] * (i === h - 1 ? 0 : img[i + 1][j]);
-            acc += k[0][0] * (i === h - 1 || j === w - 1 ? 0 : img[i + 1][j + 1]);
-
-            res[i][j] = acc
-        }
-    }
-
-    return res;
-}
-
-function medianFilter() {
+function medianFilter(img) {
     let arr = [];
     let res = [];
 
@@ -273,48 +179,9 @@ function medianFilter() {
         }
     }
 
-    return res;
+    return doNormalize ? normalize(res) : res;
 }
 
-function insertionSort(arr, n) {
-    for (let i = 1; i < n; i++) {
-        let key = arr[i];
-        let j = i - 1;
 
-        while (j >= 0 && arr[j] > key) {
-            arr[j + 1] = arr[j];
-            j = j - 1;
-        }
-        arr[j + 1] = key;
-    }
-}
-
-function download(filename, data) {
-    const element = document.createElement('a');
-    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + imgToText(data));
-    element.setAttribute('download', filename);
-
-    element.style.display = 'none';
-    document.body.appendChild(element);
-
-    element.click();
-
-    document.body.removeChild(element);
-}
-
-document.getElementById("download-btn").onclick = function () {
-    const filename = "image.pgm";
-    download(filename, processedImg);
-}
-
-function imgToText(img) {
-    let str = `P2\n${w} ${h}\n255\n`;
-    for (let i = 0; i < h; i++) {
-        for (let j = 0; j < w; j++) {
-            str += `${img[i][j]} `;
-        }
-        str += '\n';
-    }
-
-    return str;
-}
+new p5(mainCanvas, 'p5sketch');
+new p5(processedCanvas, 'p5sketch');
