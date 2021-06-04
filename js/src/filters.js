@@ -6,7 +6,9 @@ const SIXTEENTH = 1.0 / 16.0;
 
 const edgeDetection = [[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]];
 const edgeDetection2 = [[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]];
-const sharpen = [[0, -1, 0], [-1, 5, -1], [0, -1, 0]];
+const laplace = [[0, -1, 0], [-1, 4, -1], [0, -1, 0]];
+const sharpen = [[0, -0.2, 0], [-0.2, 1.8, -0.2], [0, -0.2, 0]];
+const sharpen2 = [[0, -1, 0], [-1, 5, -1], [0, -1, 0]];
 
 const sobelX = [[-1, -2, -1], [0, 0, 0], [1, 2, 1]];
 const sobelY = [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]];
@@ -51,7 +53,9 @@ const filters = {
     12: gradientY,
     13: robertsX,
     14: robertsY,
-    16: prewittXY
+    16: prewittXY,
+    17: laplace,
+    18: sharpen2,
 };
 
 const imagesPath = {
@@ -65,10 +69,6 @@ const imagesPath = {
     7: '../assets/einstein.pgm',
     8: '../assets/sea.pgm',
 };
-
-let img = [];
-let processedImg = [];
-
 
 const applyFilterBtn = document.getElementById('apply-filter-btn');
 const applyAgainBtn = document.getElementById('apply-again-btn');
@@ -84,18 +84,22 @@ const normalizeSwitch = document.getElementById('normalizeSwitch');
 
 let doNormalize = false;
 
+let img = new Image();
+let processedImg = new Image();
 
 const mainCanvas = function (sketch) {
     sketch.setup = function () {
-        sketch.createCanvas(w, h).parent("original-img");
+        sketch.createCanvas(256, 256).parent("original-img");
         readImage('../assets/lena.pgm', sketch, img);
     }
 
     imgSelector.onchange = _ => readImage(imagesPath[imgSelector.value], sketch, img);
 
     applyAgainBtn.onclick = function () {
-        img = processedImg;
-        paintImage(sketch, img);
+        if (processedImg.w !== 0) {
+            img.data = processedImg.data;
+            paintImage(sketch, img);
+        }
     }
 
     inputMatrix.onchange = function () {
@@ -114,14 +118,17 @@ const mainCanvas = function (sketch) {
 
 const processedCanvas = function (sketch) {
     sketch.setup = function () {
-        sketch.createCanvas(w, h).parent("processed-img");
+        sketch.createCanvas(256, 256).parent("processed-img");
     };
 
     filterSelector.onchange = function () {
         let value = filterSelector.value;
+        processedImg.type = img.type;
+        processedImg.w = img.w;
+        processedImg.h = img.h;
 
         if (value === '15') {
-            processedImg = medianFilter(img);
+            processedImg.data = medianFilter(img);
         } else {
             activeFilter = filters[value];
 
@@ -132,7 +139,7 @@ const processedCanvas = function (sketch) {
                 }
             }
 
-            processedImg = convolution(img, activeFilter, doNormalize);
+            processedImg.data = convolution(img, activeFilter, doNormalize)
         }
 
         paintImage(sketch, processedImg);
@@ -143,7 +150,7 @@ const processedCanvas = function (sketch) {
     }
 
     applyFilterBtn.onclick = function () {
-        processedImg = convolution(img, activeFilter, doNormalize);
+        processedImg.data = convolution(img, activeFilter, doNormalize);
         paintImage(sketch, processedImg);
     }
 
@@ -157,29 +164,32 @@ const processedCanvas = function (sketch) {
 function medianFilter(img) {
     let arr = [];
     let res = [];
+    let h = img.h;
+    let w = img.w;
+    let data = img.data;
 
     for (let i = 0; i < h; i++) {
         res[i] = [];
 
         for (let j = 0; j < w; j++) {
-            arr[0] = i === 0 || j === 0 ? 0 : img[i - 1][j - 1];
-            arr[1] = i === 0 ? 0 : img[i - 1][j];
-            arr[2] = i === 0 || j === w - 1 ? 0 : img[i - 1][j + 1];
+            arr[0] = i === 0 || j === 0 ? 0 : data[i - 1][j - 1];
+            arr[1] = i === 0 ? 0 : data[i - 1][j];
+            arr[2] = i === 0 || j === w - 1 ? 0 : data[i - 1][j + 1];
 
-            arr[3] = j === 0 ? 0 : img[i][j - 1];
-            arr[4] = img[i][j];
-            arr[5] = j === w - 1 ? 0 : img[i][j + 1];
+            arr[3] = j === 0 ? 0 : data[i][j - 1];
+            arr[4] = data[i][j];
+            arr[5] = j === w - 1 ? 0 : data[i][j + 1];
 
-            arr[6] = i === h - 1 || j === 0 ? 0 : img[i + 1][j - 1];
-            arr[7] = i === h - 1 ? 0 : img[i + 1][j];
-            arr[8] = i === h - 1 || j === w - 1 ? 0 : img[i + 1][j + 1];
+            arr[6] = i === h - 1 || j === 0 ? 0 : data[i + 1][j - 1];
+            arr[7] = i === h - 1 ? 0 : data[i + 1][j];
+            arr[8] = i === h - 1 || j === w - 1 ? 0 : data[i + 1][j + 1];
 
             insertionSort(arr, 9);
             res[i][j] = arr[4]
         }
     }
 
-    return doNormalize ? normalize(res) : res;
+    return doNormalize ? normalize(res, w, h) : res;
 }
 
 

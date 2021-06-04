@@ -1,6 +1,3 @@
-let img = [];
-let processedImg = [];
-
 let gammaValue = 1;
 let logScalarValue = 1;
 let aValue = 1;
@@ -44,47 +41,56 @@ let kernelList = [];
 const applyAgainBtn = document.getElementById('apply-again-btn');
 const downloadBtn = document.getElementById('download-btn');
 
-
 const filterSelector = document.getElementById('input-filter');
 const inputMatrix = document.getElementById('input-matrix');
 const inputMatrixValues = document.getElementsByName('array[]');
 const imgSelector = document.getElementById('img-selector');
 
 const normalizeSwitch = document.getElementById('normalizeSwitch');
+const showOriginalHist = document.getElementById('show-original-hist');
+const showProcessedHist = document.getElementById('show-processed-hist');
 
 let doNormalize = false;
 
+let img = new Image();
+let processedImg = new Image();
+
 const mainCanvas = function (sketch) {
     sketch.setup = function () {
-        sketch.createCanvas(w, h).parent("original-img");
+        sketch.createCanvas(256, 256).parent("original-img");
         readImage('../assets/lena.pgm', sketch, img);
     }
 
     imgSelector.onchange = _ => readImage(imagesPath[imgSelector.value], sketch, img);
 
     applyAgainBtn.onclick = function () {
-        img = processedImg;
+        img.data = processedImg.data;
         paintImage(sketch, img);
     }
+
+    showOriginalHist.onclick = _ => img.width !== 0 ? originalHist.setup() : null;
 }
 
 
 let processedCanvas = function (sketch) {
     sketch.setup = function () {
-        sketch.createCanvas(w, h).parent("processed-img");
+        sketch.createCanvas(256, 256).parent("processed-img");
     };
 
     filterSelector.onchange = function () {
         let value = filterSelector.value;
 
+        processedImg.type = img.type;
+        processedImg.w = img.w;
+        processedImg.h = img.h;
+
         if (value === '0') {
             currentOperator = null;
-            processedImg = img;
+            processedImg.data = img.data;
         } else {
             currentOperator = operators[value];
-            processedImg = transform(currentOperator);
+            processedImg.data = transform(img, currentOperator);
         }
-
         paintImage(sketch, processedImg);
     }
 
@@ -98,7 +104,7 @@ let processedCanvas = function (sketch) {
         sigmaValue = parseFloat(inputMatrixValues[6].value);
 
         if (currentOperator != null) {
-            processedImg = transform(currentOperator);
+            processedImg.data = transform(img, currentOperator);
             paintImage(sketch, processedImg)
         }
     }
@@ -108,23 +114,43 @@ let processedCanvas = function (sketch) {
     }
 
     downloadBtn.onclick = function () {
-        let filename = "image.pgm";
-        download(filename, processedImg);
+        if (processedImg.w !== 0) {
+            let filename = "image.pgm";
+            download(filename, processedImg);
+        }
     }
+
+    showProcessedHist.onclick = _ => processedImg.width !== 0 ? processedHist.setup() : null;
 };
 
 
-function transform(operation) {
+function transform(img, operation) {
     let res = [];
-    for (let i = 0; i < h; i++) {
+    for (let i = 0; i < img.h; i++) {
         res[i] = [];
-        for (let j = 0; j < w; j++) {
-            res[i][j] = operation(img[i][j]);
+        for (let j = 0; j < img.w; j++) {
+            res[i][j] = operation(img.data[i][j]);
         }
     }
-    return doNormalize ? normalize(res) : res;
+    return doNormalize ? normalize(res, img.w, img.h) : res;
 }
 
 
+const originalHistCanvas = function (sketch) {
+    sketch.setup = function () {
+        sketch.createCanvas(256, 150).parent("original-hist");
+        if (img.w !== 0) drawHist(sketch, img);
+    }
+}
+
+const processedHistCanvas = function (sketch) {
+    sketch.setup = function () {
+        sketch.createCanvas(256, 150).parent("processed-hist");
+        if (processedImg.w !== 0) drawHist(sketch, processedImg);
+    }
+}
+
 new p5(mainCanvas, 'p5sketch');
 new p5(processedCanvas, 'p5sketch');
+const originalHist = new p5(originalHistCanvas, 'p5sketch');
+const processedHist = new p5(processedHistCanvas, 'p5sketch');

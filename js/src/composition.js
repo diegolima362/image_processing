@@ -1,9 +1,3 @@
-let imgA = [];
-let imgB = [];
-let processedImg = [];
-
-let selectedOperator = null;
-
 const add = (a, b) => a + b;
 const sub = (a, b) => a - b;
 const mul = (a, b) => a * b;
@@ -23,51 +17,60 @@ const operators = {
     7: xor,
 };
 
+let selectedOperator = null;
+
 const imagesPath = {
     0: '../assets/lena.pgm',
     1: '../assets/airplane.pgm',
 };
 
 const filterSelector = document.getElementById('input-filter');
-const img1Selector = document.getElementById('img-1-selector');
-const img2Selector = document.getElementById('img-2-selector');
+const imgASelector = document.getElementById('img-a-selector');
+const imgBSelector = document.getElementById('img-b-selector');
 
 const normalizeSwitch = document.getElementById('normalizeSwitch');
 const downloadBtn = document.getElementById('download-btn');
 
 let doNormalize = false;
 
+let imgA = new Image();
+let imgB = new Image();
+let processedImg = new Image();
 
 const mainCanvas = function (sketch) {
     sketch.setup = function () {
-        sketch.createCanvas(w, h).parent("img-1");
+        sketch.createCanvas(256, 256).parent("img-a");
         readImage('../assets/lena.pgm', sketch, imgA);
     }
 
-    img1Selector.onchange = _ => readImage(imagesPath[img1Selector.value], sketch, imgA);
+    imgASelector.onchange = _ => readImage(imagesPath[imgASelector.value], sketch, imgA);
 }
 
 
 const secondaryCanvas = function (sketch) {
     sketch.setup = function () {
-        sketch.createCanvas(w, h).parent("img-2");
-        readImage('../assets/airplane.pgm', sketch, imgB, w, h);
+        sketch.createCanvas(256, 256).parent("img-b");
+        readImage('../assets/airplane.pgm', sketch, imgB);
     }
 
-    img2Selector.onchange = _ => readImage(imagesPath[img2Selector.value], sketch, imgB);
+    imgBSelector.onchange = _ => readImage(imagesPath[imgBSelector.value], sketch, imgB);
 }
 
 
 const processedCanvas = function (sketch) {
     sketch.setup = function () {
-        sketch.createCanvas(w, h).parent("processed-img");
+        sketch.createCanvas(256, 256).parent("processed-img");
     };
 
     filterSelector.onchange = function () {
         let val = filterSelector.value;
 
         if (val !== '0') {
-            processedImg = composition(imgA, imgB, operators[val], doNormalize);
+            processedImg.type = imgA.type;
+            processedImg.w = imgA.w;
+            processedImg.h = imgA.h;
+            processedImg.data = composition(imgA, imgB, operators[val], doNormalize);
+
             paintImage(sketch, processedImg);
         }
     }
@@ -77,8 +80,10 @@ const processedCanvas = function (sketch) {
     }
 
     downloadBtn.onclick = function () {
-        let filename = "image.pgm";
-        download(filename, processedImg);
+        if (processedImg.w !== 0) {
+            let filename = "image.pgm";
+            download(filename, processedImg);
+        }
     }
 };
 

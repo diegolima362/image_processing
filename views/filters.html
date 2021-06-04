@@ -4,31 +4,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Processamento de Imagem</title>
-
     <link rel="shortcut icon" href="../assets/favicon.png"/>
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <script src="../js/lib/bootstrap.bundle.min.js"></script>
 </head>
 
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container"><a class="navbar-brand" href="../index.html">Projeto CG</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span
-                class="navbar-toggler-icon"></span></button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link active" href="filters.html">Filtros</a></li>
-                <li class="nav-item"><a class="nav-link" href="composition.html">Composição</a></li>
-                <li class="nav-item"><a class="nav-link" href="transformations.html">Transformações</a></li>
-                <li class="nav-item"><a class="nav-link" href="sobre-o-projeto.html">Sobre o projeto</a></li>
-            </ul>
-        </div>
-    </div>
-</nav>
-<br>
+<div id="nav-placeholder"></div>
 <main>
     <div class="container-fluid p-0 m-0 justify-content-center d-grid" style="min-height: 450px;">
         <div class="row w-100 p-0 w-0">
@@ -64,6 +47,8 @@
                                 <option value="2">Detecção de Bordas</option>
                                 <option value="3">Detecção de Bordas 2</option>
                                 <option value="4">Sharpen</option>
+                                <option value="18">Sharpen 2</option>
+                                <option value="17">Laplace</option>
                                 <option value="9">Media</option>
                                 <option value="15">Mediana</option>
                                 <option value="5">Sobel X</option>
@@ -136,6 +121,16 @@
         </div>
     </div>
 </main>
+<script>
+    fetch('navbar.html')
+        .then(function (response) {
+            return response.text();
+        })
+        .then(function (body) {
+            document.getElementById('nav-placeholder').innerHTML = body;
+            document.getElementById('filter-li').classList.add('active');
+        });
+</script>
 <script src="../js/lib/p5.min.js"></script>
 <script src="../js/src/utils.js"></script>
 <script src="../js/src/filters.js"></script>
