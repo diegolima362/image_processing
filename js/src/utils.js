@@ -141,34 +141,133 @@ function normalize(img, w, h) {
     return res;
 }
 
-
-function drawHist(sketch, img) {
-    let histogram = new Array(256).fill(0);
-
-    for (let i = 0; i < img.h; i += 5) {
-        for (let j = 0; j < img.w; j += 5) {
-            histogram[img.data[i][j]]++;
+function getRange(img) {
+    let max = img.data[0][0];
+    let min = max;
+    let v;
+    for (let i = 0; i < img.h; i++) {
+        for (let j = 0; j < img.w; j++) {
+            v = img.data[i][j];
+            if (v > max) max = v;
+            if (v < min) min = v;
         }
     }
 
-    sketch.loadPixels();
-    sketch.stroke(0)
-    sketch.push()
+    return [min, max];
+}
 
-    sketch.line(0, 145, 0, 140);
-    sketch.line(256, 145, 256, 140);
+function instantiateHistogram(img) {
+    let hist = new Array(256).fill(0);
 
-    let maxValue = sketch.max(histogram);
-    let minValue = sketch.min(histogram);
-
-    for (let i = 0; i < 256; i++) {
-        let y = sketch.int(sketch.map(histogram[i], minValue, maxValue, 0, 127));
-        sketch.line(i, 140, i, 140 - y);
+    for (let i = 0; i < img.h; i++) {
+        for (let j = 0; j < img.w; j++) {
+            hist[img.data[i][j]]++;
+        }
     }
 
+    return hist;
+}
+
+
+function getHistProb(hist, n) {
+    let h = [];
+    for (let i = 0; i < 256; i++) {
+        h[i] = hist[i] / n;
+    }
+    return h
+}
+
+function getAccumulatedProba(hist) {
+    let acc = [];
+    let sum = 0;
+
+    acc [0] = hist[0];
+    for (let i = 1; i < 256; i++) {
+        sum += hist[i - 1]
+        acc[i] = hist[i] + sum;
+    }
+
+    return acc;
+}
+
+function getScaleArr(arr) {
+    let res = [];
+
+    for (let i = 1; i < 256; i++) {
+        res[i] = Math.ceil(arr[i] * 255);
+    }
+
+    return res;
+}
+
+function equalizeImage(img) {
+    let hist = instantiateHistogram(img);
+    let histProb = getHistProb(hist, img.h * img.w);
+    let acc = getAccumulatedProba(histProb);
+    let scale  = getScaleArr(acc);
+
+    let res = [];
+    for (let i = 0; i < img.h; i++) {
+        res [i] = [];
+        for (let j = 0; j < img.w; j++) {
+            res[i][j] = scale[img.data[i][j]];
+        }
+    }
+
+    return res;
+}
+
+
+function drawHist(sketch, img, width, height) {
+
+    let hist = instantiateHistogram(img);
+
+    let min = sketch.min(hist);
+    let max = sketch.max(hist);
+
+    sketch.loadPixels();
+    sketch.push();
+
+    let range = 256;
+    let vPadding = 20;
+    let paddingLeft = width * 0.2;
+
+
+    let graphHeight = height - 2 * vPadding;
+
+    let y1 = height - vPadding;
+    let y2;
+
+    // draw lines
+    sketch.translate(paddingLeft, vPadding);
+    sketch.stroke(0);
+
+
     sketch.textSize(8);
-    sketch.text('0', 3, 149);
-    sketch.text('255', 240, 149);
+    sketch.textFont('Helvetica');
+
+    sketch.line(-2, y1 + 2, range, y1 + 2); // x axis
+    sketch.line(-2, y1 + 2, -2, vPadding); // y axis
+
+    sketch.line(0, y1 + 2, 0, y1 + 4); // start x
+    sketch.text('0', 2, y1 + 10);
+
+    sketch.line(range, y1 + 2, range, y1 + 4); // end x
+    sketch.text('255', range + 2, y1 + 10);
+
+    sketch.line(-4, y1, -2, y1); // start y
+    sketch.text(`${min}`, -20, y1);
+
+    sketch.line(-4, vPadding, -2, vPadding); // end y
+    sketch.text(`${max}`, -20, vPadding);
+
+
+    sketch.stroke(50);
+    for (let i = 0; i < range; i++) {
+        y2 = sketch.int(sketch.map(hist[i], min, max, 0, graphHeight));
+        if (y2 !== 0) sketch.line(i, y1, i, y1 - y2);
+    }
+
     sketch.pop();
 }
 

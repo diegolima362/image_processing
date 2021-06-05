@@ -47,8 +47,6 @@ const inputMatrixValues = document.getElementsByName('array[]');
 const imgSelector = document.getElementById('img-selector');
 
 const normalizeSwitch = document.getElementById('normalizeSwitch');
-const showOriginalHist = document.getElementById('show-original-hist');
-const showProcessedHist = document.getElementById('show-processed-hist');
 
 let doNormalize = false;
 
@@ -67,8 +65,6 @@ const mainCanvas = function (sketch) {
         img.data = processedImg.data;
         paintImage(sketch, img);
     }
-
-    showOriginalHist.onclick = _ => img.width !== 0 ? originalHist.setup() : null;
 }
 
 
@@ -119,8 +115,6 @@ let processedCanvas = function (sketch) {
             download(filename, processedImg);
         }
     }
-
-    showProcessedHist.onclick = _ => processedImg.width !== 0 ? processedHist.setup() : null;
 };
 
 
@@ -136,21 +130,5 @@ function transform(img, operation) {
 }
 
 
-const originalHistCanvas = function (sketch) {
-    sketch.setup = function () {
-        sketch.createCanvas(256, 150).parent("original-hist");
-        if (img.w !== 0) drawHist(sketch, img);
-    }
-}
-
-const processedHistCanvas = function (sketch) {
-    sketch.setup = function () {
-        sketch.createCanvas(256, 150).parent("processed-hist");
-        if (processedImg.w !== 0) drawHist(sketch, processedImg);
-    }
-}
-
 new p5(mainCanvas, 'p5sketch');
 new p5(processedCanvas, 'p5sketch');
-const originalHist = new p5(originalHistCanvas, 'p5sketch');
-const processedHist = new p5(processedHistCanvas, 'p5sketch');

@@ -16,10 +16,10 @@
 <body>
 <div id="nav-placeholder"></div>
 <main>
-    <div class="container-fluid p-0 m-0 justify-content-center d-grid" style="min-height: 500px;">
+    <div class="container-fluid p-0 m-0 justify-content-center d-grid" style="min-height: 400px;">
         <div class="row w-100 p-0 w-0">
             <div class="col-lg-4 mb-2 align-items-center">
-                <div class="card  mx-auto align-items-center" style="width:300px; height: 600px;">
+                <div class="card mx-auto" style="width:300px; height: 400px;">
                     <div class="card-body">
                         <h5 class="card-title text-center">Imagem Original</h5>
                         <div class="card-img-top" id="original-img"></div>
@@ -36,16 +36,11 @@
                                 <option value="8">Sea</option>
                             </select>
                         </div>
-                        <button type="button" class="btn btn-outline-dark" id="show-original-hist"
-                                style="width: 256px; margin-bottom: 25px">
-                            Histograma
-                        </button>
-                        <div class="card-img-top" id="original-hist"></div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-4 mb-2">
-                <div class="card  mx-auto align-items-center" style="width:300px; height: 450px;">
+                <div class="card  mx-auto align-items-center" style="width:300px; height: 400px;">
                     <div class="card-body">
                         <h5 class="card-title text-center">Transformação</h5>
                         <div style="width: 280px; height: 135px;" class="text-center">
@@ -59,6 +54,7 @@
                                 <option value="6">Sigmoide</option>
                             </select>
                         </div>
+                        <br>
                         <div class="container text-end" style="width: 280px;">
                             <form id="input-matrix" role="form">
                                 <label style="padding-bottom: 10px">Gamma:
@@ -75,7 +71,7 @@
                                     <input type="number" name="array[]" value="1" step="1"
                                            style="width: 50px; text-align:center">
                                 </label>
-                                <label style="padding-bottom: 10px">Faixa:
+                                <label style="padding-bottom: 10px">Target Faixa Dinâmica:
                                     <input type="number" name="array[]" value="255" step="1"
                                            style="width: 50px; text-align:center">
                                 </label>
@@ -91,27 +87,22 @@
                 </div>
             </div>
             <div class="col-lg-4 mb-2">
-                <div class="card  mx-auto align-items-center" style="width:300px; height: 600px;">
+                <div class="card  mx-auto align-items-center" style="width:300px; height: 400px;">
                     <div class="card-body">
                         <h5 class="card-title text-center">Imagem Processada</h5>
                         <div class="card-img-top" id="processed-img"></div>
-                        <div class="form-check form-switch">
+                        <div class="form-check form-switch" style="margin: 10px 0 10px">
                             <input class="form-check-input" type="checkbox" id="normalizeSwitch">
                             <label class="form-check-label" for="normalizeSwitch">Normalizar [0-255]</label>
                         </div>
-                        <div class="btn-group" role="group" aria-label="Actions"
-                             style="width: 256px;margin: 20px 0 25px">
+                        <div class="btn-group d-flex" role="group">
                             <button type="button" class="btn btn-dark" id="apply-again-btn">
                                 Reusar
                             </button>
-                            <button type="button" class="btn btn-outline-dark" id="show-processed-hist">
-                                Histograma
-                            </button>
-                            <button type="button" class="btn btn-dark" id="download-btn">
-                                Salvar
+                            <button type="button" class="btn btn-outline-dark" id="download-btn">
+                                Baixar
                             </button>
                         </div>
-                        <div class="card-img-top" id="processed-hist"></div>
                     </div>
                 </div>
             </div>
