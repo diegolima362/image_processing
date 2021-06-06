@@ -102,16 +102,16 @@ function convolution(img, k, doNormalize) {
 }
 
 
-function composition(a, b, operator, doNormalize) {
+function composition(a, b, w, h, operator, doNormalize = false) {
     let res = [];
-    for (let i = 0; i < a.h; i++) {
+    for (let i = 0; i < h; i++) {
         res[i] = [];
-        for (let j = 0; j < a.w; j++) {
-            res[i][j] = operator(a.data[i][j], b.data[i][j]);
+        for (let j = 0; j < w; j++) {
+            res[i][j] = operator(a[i][j], b[i][j]);
         }
     }
 
-    return doNormalize ? normalize(res, a.w, a.h) : res;
+    return doNormalize ? normalize(res, w, h) : res;
 }
 
 
@@ -141,6 +141,7 @@ function normalize(img, w, h) {
     return res;
 }
 
+
 function getRange(img) {
     let max = img.data[0][0];
     let min = max;
@@ -156,6 +157,7 @@ function getRange(img) {
     return [min, max];
 }
 
+
 function instantiateHistogram(img) {
     let hist = new Array(256).fill(0);
 
@@ -169,58 +171,11 @@ function instantiateHistogram(img) {
 }
 
 
-function getHistProb(hist, n) {
-    let h = [];
-    for (let i = 0; i < 256; i++) {
-        h[i] = hist[i] / n;
-    }
-    return h
-}
+function drawHist(sketch, img, width, height, showCDF = false) {
 
-function getAccumulatedProba(hist) {
-    let acc = [];
+    let hist = instantiateHistogram(img);
     let sum = 0;
-
-    acc [0] = hist[0];
-    for (let i = 1; i < 256; i++) {
-        sum += hist[i - 1]
-        acc[i] = hist[i] + sum;
-    }
-
-    return acc;
-}
-
-function getScaleArr(arr) {
-    let res = [];
-
-    for (let i = 1; i < 256; i++) {
-        res[i] = Math.ceil(arr[i] * 255);
-    }
-
-    return res;
-}
-
-function equalizeImage(img) {
-    let hist = instantiateHistogram(img);
-    let histProb = getHistProb(hist, img.h * img.w);
-    let acc = getAccumulatedProba(histProb);
-    let scale  = getScaleArr(acc);
-
-    let res = [];
-    for (let i = 0; i < img.h; i++) {
-        res [i] = [];
-        for (let j = 0; j < img.w; j++) {
-            res[i][j] = scale[img.data[i][j]];
-        }
-    }
-
-    return res;
-}
-
-
-function drawHist(sketch, img, width, height) {
-
-    let hist = instantiateHistogram(img);
+    let cumsum = hist.map(x => sum += x);
 
     let min = sketch.min(hist);
     let max = sketch.max(hist);
@@ -242,7 +197,6 @@ function drawHist(sketch, img, width, height) {
     sketch.translate(paddingLeft, vPadding);
     sketch.stroke(0);
 
-
     sketch.textSize(8);
     sketch.textFont('Helvetica');
 
@@ -252,8 +206,12 @@ function drawHist(sketch, img, width, height) {
     sketch.line(0, y1 + 2, 0, y1 + 4); // start x
     sketch.text('0', 2, y1 + 10);
 
+    sketch.text('< Nivel de cinza >', range / 2 - 30, y1 + 10);
+
     sketch.line(range, y1 + 2, range, y1 + 4); // end x
     sketch.text('255', range + 2, y1 + 10);
+
+    sketch.text('1 - FDA', range + 2, vPadding);
 
     sketch.line(-4, y1, -2, y1); // start y
     sketch.text(`${min}`, -20, y1);
@@ -261,11 +219,31 @@ function drawHist(sketch, img, width, height) {
     sketch.line(-4, vPadding, -2, vPadding); // end y
     sketch.text(`${max}`, -20, vPadding);
 
+    sketch.rotate(sketch.radians(90));
+    sketch.text('< Intensidade >', graphHeight/2 - 10, 20)
+    sketch.rotate(sketch.radians(-90));
+
 
     sketch.stroke(50);
     for (let i = 0; i < range; i++) {
         y2 = sketch.int(sketch.map(hist[i], min, max, 0, graphHeight));
         if (y2 !== 0) sketch.line(i, y1, i, y1 - y2);
+    }
+
+    if (showCDF) {
+        sketch.stroke(0);
+        sketch.strokeWeight(2);
+        let min = sketch.min(cumsum);
+        let max = sketch.max(cumsum);
+
+        sketch.beginShape();
+        sketch.noFill();
+
+        for (let i = 0; i < range; i++) {
+            let y2 = sketch.int(sketch.map(cumsum[i], min, max, 0, graphHeight));
+            sketch.curveVertex(i, y1 - y2);
+        }
+        sketch.endShape();
     }
 
     sketch.pop();

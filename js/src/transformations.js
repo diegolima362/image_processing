@@ -6,12 +6,15 @@ let targetValue = 255;
 let greyCenterValue = 127;
 let sigmaValue = 25;
 
-const negative = (r) => 255 - r;
-const gamma = (r) => Math.round((((1 + r) / 255) ** gammaValue) * 255);
-const logarithmic = (r) => Math.round((logScalarValue * Math.log(1 + (r / 255))) * 255);
+let maxValue = 255;
+let minValue = 0;
+
+const negative = (r) => maxValue - r;
+const gamma = (r) => Math.round((((1 + r) / maxValue) ** gammaValue) * maxValue);
+const logarithmic = (r) => Math.round((logScalarValue * Math.log(1 + (r / maxValue))) * maxValue);
 const linear = (r) => Math.round(aValue * r + bValue);
-const dynamicRange = (r) => Math.round((r / 255) * targetValue);
-const sigmoid = (r) => Math.round(255 * (1 / (1 + Math.exp(-(r - greyCenterValue) / sigmaValue))));
+const dynamicRange = (r) => Math.round((r / maxValue) * targetValue);
+const sigmoid = (r) => Math.round(maxValue * (1 / (1 + Math.exp(-(r - greyCenterValue) / sigmaValue))));
 
 let currentOperator = null;
 
@@ -120,6 +123,7 @@ let processedCanvas = function (sketch) {
 
 function transform(img, operation) {
     let res = [];
+    [minValue, maxValue] = getRange(img);
     for (let i = 0; i < img.h; i++) {
         res[i] = [];
         for (let j = 0; j < img.w; j++) {

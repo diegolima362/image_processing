@@ -69,7 +69,7 @@ const processedCanvas = function (sketch) {
             processedImg.type = imgA.type;
             processedImg.w = imgA.w;
             processedImg.h = imgA.h;
-            processedImg.data = composition(imgA, imgB, operators[val], doNormalize);
+            processedImg.data = composition(imgA.data, imgB.data, imgA.w, imgA.h, operators[val], doNormalize);
 
             paintImage(sketch, processedImg);
         }
