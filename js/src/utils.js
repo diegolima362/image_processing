@@ -102,6 +102,17 @@ function convolution(img, k, doNormalize) {
 }
 
 
+function magnitude(gx, gy, w, h, doNormalize) {
+    let res = [];
+    for (let i = 0; i < h; i++) {
+        res[i] = [];
+        for (let j = 0; j < w; j++) {
+            res[i][j] = Math.abs(gx[i][j]) + Math.abs(gy[i][j]);
+        }
+    }
+    return doNormalize ? normalize(res, w, h) : res;
+}
+
 function composition(a, b, w, h, operator, doNormalize = false) {
     let res = [];
     for (let i = 0; i < h; i++) {

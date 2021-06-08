@@ -9,13 +9,15 @@ const edgeDetection2 = [[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]];
 const laplace = [[0, -1, 0], [-1, 4, -1], [0, -1, 0]];
 const sharpen = [[0, -0.2, 0], [-0.2, 1.8, -0.2], [0, -0.2, 0]];
 const sharpen2 = [[0, -1, 0], [-1, 5, -1], [0, -1, 0]];
+const sharpen3 = [[1, -2, 1], [-2, 5, -2], [1, -2, 1]];
 
 const sobelX = [[-1, -2, -1], [0, 0, 0], [1, 2, 1]];
 const sobelY = [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]];
+const sobelXY = (img) => magnitude(convolution(img, sobelX, doNormalize), convolution(img, sobelY, doNormalize), img.w, img.h, doNormalize);
 
 const prewittX = [[-1, -1, -1], [0, 0, 0], [1, 1, 1]];
 const prewittY = [[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]];
-const prewittXY = [[-2, -1, 0], [-1, 0, 1], [0, 1, 2]];
+const prewittXY = (img) => magnitude(convolution(img, prewittX, doNormalize), convolution(img, prewittY, doNormalize), img.w, img.h, doNormalize);
 
 const average = [[NINTH, NINTH, NINTH], [NINTH, NINTH, NINTH], [NINTH, NINTH, NINTH]];
 
@@ -27,17 +29,20 @@ const gaussianBlur = [
 
 const gradientX = [[0, 0, 0], [0, 1, 0], [0, -1, 0]];
 const gradientY = [[0, 0, 0], [0, 1, -1], [0, 0, 0]];
+const gradientXY = (img) => magnitude(convolution(img, gradientX, doNormalize), convolution(img, gradientY, doNormalize), img.w, img.h, doNormalize);
+
 
 const robertsX = [[0, 0, 0], [0, 1, 0], [0, 0, -1]];
 const robertsY = [[0, 0, 0], [0, 0, 1], [0, -1, 0]];
+const robertsXY = (img) => magnitude(convolution(img, robertsX, doNormalize), convolution(img, robertsY, doNormalize), img.w, img.h, doNormalize);
 
 const none = [[0, 0, 0], [0, 1, 0], [0, 0, 0]];
 
 const custom = [[0, 0, 0], [0, 1, 0], [0, 0, 0]];
 
-let activeFilter = none;
+let activeKernel = none;
 
-const filters = {
+const kernel = {
     0: none,
     1: custom,
     2: edgeDetection,
@@ -53,10 +58,18 @@ const filters = {
     12: gradientY,
     13: robertsX,
     14: robertsY,
-    16: prewittXY,
     17: laplace,
     18: sharpen2,
+    15: sharpen3,
 };
+
+const operators = {
+    19: robertsXY,
+    20: gradientXY,
+    21: sobelXY,
+    22: prewittXY,
+    23: medianFilter,
+}
 
 const imagesPath = {
     0: '../assets/lena.pgm',
@@ -111,7 +124,7 @@ const mainCanvas = function (sketch) {
                 custom[i][j] = parseFloat(scalar.value) * parseFloat(inputMatrixValues[k++].value);
             }
         }
-        activeFilter = custom;
+        activeKernel = custom;
     }
 }
 
@@ -127,21 +140,19 @@ const processedCanvas = function (sketch) {
         processedImg.w = img.w;
         processedImg.h = img.h;
 
-        if (value === '15') {
-            processedImg.data = medianFilter(img);
-        } else {
-            activeFilter = filters[value];
 
+        if (value >= 19) {// filtros de magnitude > 18
+            processedImg.data = operators[value](img);
+        } else {
+            activeKernel = kernel[value];
             let k = 0;
             for (let i = 0; i < 3; i++) {
                 for (let j = 0; j < 3; j++) {
-                    inputMatrixValues[k++].value = `${activeFilter[i][j]}`;
+                    inputMatrixValues[k++].value = `${activeKernel[i][j]}`;
                 }
             }
-
-            processedImg.data = convolution(img, activeFilter, doNormalize)
+            processedImg.data = convolution(img, activeKernel, doNormalize)
         }
-
         paintImage(sketch, processedImg);
     }
 
@@ -150,8 +161,10 @@ const processedCanvas = function (sketch) {
     }
 
     applyFilterBtn.onclick = function () {
-        processedImg.data = convolution(img, activeFilter, doNormalize);
-        paintImage(sketch, processedImg);
+        if (filterSelector.value < 19) {
+            processedImg.data = convolution(img, activeKernel, doNormalize);
+            paintImage(sketch, processedImg);
+        }
     }
 
     downloadBtn.onclick = function () {
