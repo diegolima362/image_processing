@@ -158,98 +158,6 @@ function getRange(img) {
 }
 
 
-function instantiateHistogram(img) {
-    let hist = new Array(256).fill(0);
-
-    for (let i = 0; i < img.h; i++) {
-        for (let j = 0; j < img.w; j++) {
-            hist[img.data[i][j]]++;
-        }
-    }
-
-    return hist;
-}
-
-
-function drawHist(sketch, img, width, height, showCDF = false) {
-
-    let hist = instantiateHistogram(img);
-    let sum = 0;
-    let cumsum = hist.map(x => sum += x);
-
-    let min = sketch.min(hist);
-    let max = sketch.max(hist);
-
-    sketch.loadPixels();
-    sketch.push();
-
-    let range = 256;
-    let vPadding = 20;
-    let paddingLeft = width * 0.2;
-
-
-    let graphHeight = height - 2 * vPadding;
-
-    let y1 = height - vPadding;
-    let y2;
-
-    // draw lines
-    sketch.translate(paddingLeft, vPadding);
-    sketch.stroke(0);
-
-    sketch.textSize(8);
-    sketch.textFont('Helvetica');
-
-    sketch.line(-2, y1 + 2, range, y1 + 2); // x axis
-    sketch.line(-2, y1 + 2, -2, vPadding); // y axis
-
-    sketch.line(0, y1 + 2, 0, y1 + 4); // start x
-    sketch.text('0', 2, y1 + 10);
-
-    sketch.text('< Nivel de cinza >', range / 2 - 30, y1 + 10);
-
-    sketch.line(range, y1 + 2, range, y1 + 4); // end x
-    sketch.text('255', range + 2, y1 + 10);
-
-    sketch.text('1 - FDA', range + 2, vPadding);
-
-    sketch.line(-4, y1, -2, y1); // start y
-    sketch.text(`${min}`, -20, y1);
-
-    sketch.line(-4, vPadding, -2, vPadding); // end y
-    sketch.text(`${max}`, -20, vPadding);
-
-    sketch.rotate(sketch.radians(90));
-    sketch.text('< Intensidade >', graphHeight/2 - 10, 20)
-    sketch.rotate(sketch.radians(-90));
-
-
-    sketch.stroke(50);
-    for (let i = 0; i < range; i++) {
-        y2 = sketch.int(sketch.map(hist[i], min, max, 0, graphHeight));
-        if (y2 !== 0) sketch.line(i, y1, i, y1 - y2);
-    }
-
-    if (showCDF) {
-        sketch.stroke(0);
-        sketch.strokeWeight(2);
-        let min = sketch.min(cumsum);
-        let max = sketch.max(cumsum);
-
-        sketch.beginShape();
-        sketch.noFill();
-
-        for (let i = 0; i < range; i++) {
-            let y2 = sketch.int(sketch.map(cumsum[i], min, max, 0, graphHeight));
-            sketch.curveVertex(i, y1 - y2);
-        }
-        sketch.endShape();
-    }
-
-    sketch.pop();
-}
-
-
 function download(filename, img) {
     const element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + imgToText(img));
@@ -295,5 +203,24 @@ function insertionSort(arr, n) {
         }
         arr[j + 1] = key;
     }
+}
+
+function inTriangle(p, t) {
+    let v0 = [t.c.x - t.a.x, t.c.y - t.a.y];
+    let v1 = [t.b.x - t.a.x, t.b.y - t.a.y];
+    let v2 = [p.x - t.a.x, p.y - t.a.y];
+
+    let dot00 = (v0[0] * v0[0]) + (v0[1] * v0[1]);
+    let dot01 = (v0[0] * v1[0]) + (v0[1] * v1[1]);
+    let dot02 = (v0[0] * v2[0]) + (v0[1] * v2[1]);
+    let dot11 = (v1[0] * v1[0]) + (v1[1] * v1[1]);
+    let dot12 = (v1[0] * v2[0]) + (v1[1] * v2[1]);
+
+    let invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+
+    let u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    let v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+    return ((u >= 0) && (v >= 0) && (u + v < 1));
 }
 

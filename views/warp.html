@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morfismo</title>
+    <link rel="shortcut icon" href="../assets/favicon.png"/>
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <script src="../js/lib/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+<div id="nav-placeholder"></div>
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col-4">
+                <div class="card text-center" style="height: 450px;">
+                    <div class="card-body">
+                        <h5 class="card-title">Imagem Original</h5>
+                        <div class="card-img-top" id="start-img"></div>
+                        <label for="start-img" id="start-pts">Pts: 0</label><br>
+                        <div class="btn btn-sm btn-dark" id="triangulate-a-btn">Triangular</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card text-center" style="height: 450px;">
+                    <div class="card-body">
+                        <h5 class="card-title">Imagem destino</h5>
+                        <div class="card-img-top" id="end-img"></div>
+                        <label for="start-img" id="end-pts">Pts: 0</label><br>
+                        <div class="btn btn-sm btn-dark" id="triangulate-b-btn">Triangular</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card text-center" style="height: 450px;">
+                    <div class="card-body mx-auto">
+                        <h5 class="card-title">Resultado</h5>
+                        <div class="card-img-top" id="result-img"></div>
+                        <div class="btn btn-sm btn-dark" id="apply-btn">Processar</div>
+                        <br>
+                        <label for="range-control" class="form-label">Imagem</label>
+                        <input type="range" max="9" min="0" value="0" class="form-range" id="range-control">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<script>
+    fetch('navbar.html')
+        .then(function (response) {
+            return response.text();
+        })
+        .then(function (body) {
+            document.getElementById('nav-placeholder').innerHTML = body;
+            document.getElementById('warp-li').classList.add('active');
+        });
+</script>
+<script src="../js/lib/p5.min.js"></script>
+<script src="../js/src/utils.js"></script>
+<script src="../js/src/delauney.js"></script>
+<script src="../js/src/warp.js"></script>
+</body>
+</html>
